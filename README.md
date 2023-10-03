@@ -50,3 +50,6 @@ terraform apply -var-file accounts/VDSS/terraform.tfvars -->
 ├── makefile
 └── README.md
 ```
+
+## Accounts
+An account will be created for the IaC and where it is given the authority to `assume a role` in the specific account where it can deploy these resources
