@@ -1,4 +1,4 @@
-# temp-client1-repo
+# Terraform Strategy
 
 <!-- 
 terraform init -backend-config accounts/VDSS/backend.conf -reconfigure
@@ -13,6 +13,8 @@ terraform apply -var-file accounts/VDSS/terraform.tfvars -->
 .
 ├── accounts
 │   ├── dmz
+│   │   ├── main.tf
+│   │   └── ....
 │   ├── logging
 │   │   ├── main.tf
 │   │   └── ....
