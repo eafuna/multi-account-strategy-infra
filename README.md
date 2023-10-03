@@ -1,5 +1,8 @@
 # Terraform Strategy
+Recommended strategy for organizing the IaC having multi-account/environment. 
 
+[!NOTE]
+Ideally, modules should reside in a separate repository and referenced by a version only. 
 <!-- 
 terraform init -backend-config accounts/VDSS/backend.conf -reconfigure
 ```
