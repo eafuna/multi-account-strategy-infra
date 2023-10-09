@@ -9,44 +9,87 @@ locals {
   resource_name = "${var.account_name}-${var.environment}"
   region        = var.region
 
+  # ====================================
+  # VPC vdss-egress-vpc
+  # ====================================
   egress_cidr = [
-    "10.50.0.0/21"
+    "10.50.0.0/22"
   ]
 
-  # EGRESS
-  egress_private_subnets = {
-    "trust_subnet" = [
-      "10.50.0.0/22"
-    ],
-    "untrust_subnet" = [
-      "10.50.4.0/22"
+  egress_private_subnets = {}
+  egress_public_subnets = {
+    "subnets" = [
+      "10.50.0.0/23",
+      # "10.50.2.0/23"
     ]
   }
 
-  # OOB-MGMT
+  # ====================================
+  # VPC vdss-oobmgmt-vpc
+  # ====================================
   oobmgmt_cidr = [
-    "10.50.12.0/22",
-    "10.50.16.0/20"
+    "10.50.8.0/22"
   ]
   oobmgmt_private_subnets = {
-    "oob_mgmt" = [
-      "10.50.12.0/23"
-    ],
-    "transit_gateway" = [
-      "10.50.14.0/23",
-      "10.50.16.0/20"
+    "subnets" = [
+      "10.50.8.0/23",
+      "10.50.10.0/23"
     ]
   }
 
-  # OOB-MGMT
-  inspection_cidr = ["10.50.8.0/22"]
+
+  # ====================================
+  # VPC vdss-insp-vpc
+  # ====================================
+  inspection_cidr = ["10.50.4.0/22"]
+  inspection_public_subnets = {
+    "inspection_fw" = ["10.50.4.0/23"]
+  }
   inspection_private_subnets = {
-    "inspection_fw" = ["10.50.8.0/22"]
+    "inspection_fw" = ["10.50.6.0/23"]
   }
 
-  azs = slice(data.aws_availability_zones.available.names, 0, 3)
 
+  # ====================================
+  # VPC reserved
+  # ====================================
+  reserved_cidr = ["10.50.12.0/22", "10.50.16.0/22"]
+
+  # ====================================
+  # General
+  # ====================================  
+  azs          = slice(data.aws_availability_zones.available.names, 0, 3)
   account_tags = var.account_tags
+
+}
+
+################################################################################
+# INSPECTION VPC
+################################################################################
+module "reserved_vpc" {
+  source = "../../modules/aws_vpc/"
+
+  name                  = "${local.resource_name}-reserved-vpc"
+  cidr                  = local.reserved_cidr[0]
+  secondary_cidr_blocks = slice(local.reserved_cidr, 1, length(local.reserved_cidr))
+
+  manage_default_network_acl    = false
+  manage_default_route_table    = false
+  manage_default_security_group = false
+
+  azs                 = local.azs
+  public_subnets      = []
+  private_subnets     = []
+  database_subnets    = []
+  elasticache_subnets = []
+  redshift_subnets    = []
+  intra_subnets       = []
+  outpost_subnets     = []
+
+  enable_nat_gateway = false
+
+  tags = local.account_tags
+
 
 }
 
@@ -65,7 +108,7 @@ module "inspection_vpc" {
   manage_default_security_group = false
 
   azs             = local.azs
-  public_subnets  = []
+  public_subnets  = [for k, v in local.inspection_public_subnets : "${join(",", v)}"]
   private_subnets = [for k, v in local.inspection_private_subnets : "${join(",", v)}"]
   # private_subnets_names = [for k, v in local.egress_subnets : k ]
   database_subnets    = []
@@ -96,7 +139,7 @@ module "egress_vpc" {
   manage_default_security_group = false
 
   azs             = local.azs
-  public_subnets  = []
+  public_subnets  = [for k, v in local.egress_public_subnets : "${join(",", v)}"]
   private_subnets = [for k, v in local.egress_private_subnets : "${join(",", v)}"]
   # private_subnets_names = [for k, v in local.egress_subnets : k ]
   database_subnets    = []

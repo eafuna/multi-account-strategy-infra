@@ -8,6 +8,8 @@ locals {
 
   resource_name = "${var.account_name}-${var.environment}"
   region        = var.region
+  azs = slice(data.aws_availability_zones.available.names, 0, 3)
+  account_tags = var.account_tags
 
   workload_cidr = ["10.50.60.0/22", "10.50.64.0/19", "10.50.96.0/23"]
 
@@ -18,10 +20,6 @@ locals {
   }
   database_subnets = {
   "main" = ["10.50.80.0/22"] }
-
-  azs = slice(data.aws_availability_zones.available.names, 0, 3)
-
-  account_tags = var.account_tags
 
 }
 
